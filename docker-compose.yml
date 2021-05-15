@@ -1,0 +1,34 @@
+version: "3"
+
+services: 
+  forum:
+    build: 
+      context: .
+      dockerfile: ./Dockerfile
+    command:
+      - bash
+      - -c
+      - |
+        /wait-for-it.sh db:5432 -t 10
+        python manage.py makemigrations
+        python manage.py migrate
+        python manage.py runserver 0:8000
+    volumes: 
+      - .:/usr/src/forum
+    ports:
+      - "8000:8000"
+    depends_on: 
+      - db
+
+  db:
+    image: mysql:5.7
+    container_name: forum_db
+    environment: 
+      - MYSQL_DATABASE=forum
+      - MYSQL_PASSWORD=password
+      - MYSQL_ROOT_PASSWORD=password
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    expose:
+      - "3306"
