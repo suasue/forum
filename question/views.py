@@ -120,3 +120,19 @@ class CommentView(View):
 		)
 
 		return JsonResponse({'message': 'SUCCESS'}, status=201)
+
+	def get(self, request, question_id):
+		if not Question.objects.filter(id=question_id).exists():
+			return JsonResponse({'message': 'QUESTION_DOES_NOT_EXIST'}, status=404)
+
+		comments = Comment.objects.filter(question_id=question_id)
+
+		comment_list = [{
+			'id'        : comment.id,
+			'content'   : comment.content,
+			'author'    : comment.author.name,
+			'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M:%S')
+			} for comment in comments 
+		]
+		
+		return JsonResponse({'comments': comment_list}, status=200)

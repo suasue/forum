@@ -218,8 +218,8 @@ class CommentTest(TestCase):
 	@classmethod
 	def setUpTestData(cls):
 		user = User.objects.create_user(
-			email    = 'test03@example.com',
-			name     = 'test_name03',
+			email    = 'test01@example.com',
+			name     = 'test_name01',
 			password = 'test1234'
 		)
 		question = Question.objects.create(
@@ -272,7 +272,34 @@ class CommentTest(TestCase):
 		self.assertEqual(response.status_code, 400)
 		self.assertEqual(response.json(), {'message': 'KEY_ERROR'})
 
-	def test_comment_detail__question_does_not_exist(self):
+	def test_comment_post_question_does_not_exist(self):
+		headers = {'HTTP_Authorization': self.access_token}
+		data = {'content': 'test_comment'}
+		response = client.post('/question/3/comment', json.dumps(data), content_type='application/json', **headers)
+		self.assertEqual(response.status_code, 404)
+		self.assertEqual(response.json(), {'message': 'QUESTION_DOES_NOT_EXIST'})
+
+	def test_comment_get_success(self):
+		response = client.get('/question/1/comment', content_type='application/json')
+		self.assertEqual(response.json(), {
+			'comments': [
+				{
+					'id'        : 1,
+					'content'   : 'test_comment01',
+					'author'    : 'test_name01',
+					'created_at': self.comment1.created_at.strftime('%Y-%m-%d %H:%M:%S')
+				},
+				{
+					'id'        : 2,
+					'content'   : 'test_comment02',
+					'author'    : 'test_name01',
+					'created_at': self.comment2.created_at.strftime('%Y-%m-%d %H:%M:%S')
+				}
+			]
+		})
+		self.assertEqual(response.status_code, 200)
+
+	def test_comment_get_question_does_not_exist(self):
 		headers = {'HTTP_Authorization': self.access_token}
 		data = {'content': 'test_comment'}
 		response = client.post('/question/3/comment', json.dumps(data), content_type='application/json', **headers)
