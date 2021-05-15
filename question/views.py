@@ -4,7 +4,7 @@ from datetime import datetime
 from django.views import View
 from django.http  import JsonResponse
 
-from question.models import Question
+from question.models import Comment, Question
 from user.utils      import login_decorator
 
 
@@ -40,6 +40,7 @@ class QuestionView(View):
 		]
 
 		return JsonResponse({'questions': question_list}, status=200)
+
 
 class QuestionDetailView(View):
 	@login_decorator
@@ -97,3 +98,25 @@ class QuestionDetailView(View):
 		}
 
 		return JsonResponse({'question': question_detail}, status=200)
+
+
+class CommentView(View):
+	@login_decorator
+	def post(self, request, question_id):
+		user    = request.user
+		data    = json.loads(request.body)
+		content = data.get('content', None)
+
+		if not content:
+			return JsonResponse({'message': 'KEY_ERROR'}, status=400)
+
+		if not Question.objects.filter(id=question_id).exists():
+			return JsonResponse({'message': 'QUESTION_DOES_NOT_EXIST'}, status=404)
+
+		Comment.objects.create(
+			content     = content,
+			author      = user,
+			question_id = question_id
+		)
+
+		return JsonResponse({'message': 'SUCCESS'}, status=201)

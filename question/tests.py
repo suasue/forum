@@ -4,7 +4,7 @@ from datetime import datetime
 
 from django.test import TestCase, Client
 
-from question.models import Question
+from question.models import Question, Comment
 from user.models     import User
 from forum.settings  import SECRET_KEY, ALGORITHM
 
@@ -38,6 +38,7 @@ class QuestionTest(TestCase):
 	
 	def tearDown(self):
 		User.objects.all().delete()
+		Question.objects.all().delete()
 
 	def test_question_post_success(self):
 		headers = {'HTTP_Authorization': self.access_token}
@@ -124,6 +125,7 @@ class QuestionDetailTest(TestCase):
 	
 	def tearDown(self):
 		User.objects.all().delete()
+		Question.objects.all().delete()
 
 	def test_question_detail_put_success(self):
 		headers = {'HTTP_Authorization': self.access_token1}
@@ -208,5 +210,71 @@ class QuestionDetailTest(TestCase):
 	def test_question_detail_get_question_does_not_exist(self):
 		headers = {'HTTP_Authorization': self.access_token1}
 		response = client.get('/question/3', content_type='application/json', **headers)
+		self.assertEqual(response.status_code, 404)
+		self.assertEqual(response.json(), {'message': 'QUESTION_DOES_NOT_EXIST'})
+
+
+class CommentTest(TestCase):
+	@classmethod
+	def setUpTestData(cls):
+		user = User.objects.create_user(
+			email    = 'test03@example.com',
+			name     = 'test_name03',
+			password = 'test1234'
+		)
+		question = Question.objects.create(
+			id         = 1,
+			title      = 'test_title01',
+			content    = 'test_content01',
+			author     = user,
+			created_at = '2021-05-16 17:30:00'
+		)
+		cls.comment1 = Comment.objects.create(
+			id         = 1,
+			content    = 'test_comment01',
+			author     = user,
+			question   = question,
+			created_at = '2021-05-17 12:30:00'
+		)
+		cls.comment2 = Comment.objects.create(
+			id         = 2,
+			content    = 'test_comment02',
+			author     = user,
+			question   = question,
+			created_at = '2021-05-17 14:00:00'
+		)
+		
+		cls.access_token = jwt.encode({'id': user.id}, SECRET_KEY, algorithm=ALGORITHM)
+	
+	def tearDown(self):
+		User.objects.all().delete()
+		Question.objects.all().delete()
+		Comment.objects.all().delete()
+
+	def test_comment_post_success(self):
+		headers = {'HTTP_Authorization': self.access_token}
+		data = {'content': 'test_comment'}
+		response = client.post('/question/1/comment', json.dumps(data), content_type='application/json', **headers)
+		self.assertEqual(response.status_code, 201)
+		self.assertEqual(response.json(), {'message': 'SUCCESS'})
+
+	def test_comment_post_key_error1(self):
+		headers = {'HTTP_Authorization': self.access_token}
+		data = {}
+		response = client.post('/question/1/comment', json.dumps(data), content_type='application/json', **headers)
+		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.json(), {'message': 'KEY_ERROR'})
+
+	def test_comment_post_key_error2(self):
+		headers = {'HTTP_Authorization': self.access_token}
+		data = {'content': ''}
+		response = client.post('/question/1/comment', json.dumps(data), content_type='application/json', **headers)
+		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.json(), {'message': 'KEY_ERROR'})
+
+	def test_comment_detail__question_does_not_exist(self):
+		headers = {'HTTP_Authorization': self.access_token}
+		data = {'content': 'test_comment'}
+		response = client.post('/question/3/comment', json.dumps(data), content_type='application/json', **headers)
 		self.assertEqual(response.status_code, 404)
 		self.assertEqual(response.json(), {'message': 'QUESTION_DOES_NOT_EXIST'})
