@@ -51,3 +51,19 @@ class QuestionDetailView(View):
 		question.save()
 
 		return JsonResponse({'message': 'SUCCESS'}, status=200)
+
+	@login_decorator
+	def delete(self, request, question_id):
+		user    = request.user
+
+		if not Question.objects.filter(id=question_id).exists():
+			return JsonResponse({'message': 'QUESTION_DOES_NOT_EXIST'}, status=404)
+
+		question = Question.objects.get(id=question_id)
+
+		if user != question.author:
+			return JsonResponse({'message':'INVALID_USER'}, status=401)
+		
+		question.delete()
+
+		return JsonResponse({'message': 'SUCCESS'}, status=200)

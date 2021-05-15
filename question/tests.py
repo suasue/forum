@@ -132,3 +132,22 @@ class QuestionDetailTest(TestCase):
 		response = client.put('/question/1', json.dumps(data), content_type='application/json', **headers)
 		self.assertEqual(response.status_code, 401)
 		self.assertEqual(response.json(), {'message': 'INVALID_USER'})
+
+	def test_question_detail_delete_success(self):
+		headers = {'HTTP_Authorization': self.access_token1}
+		response = client.delete('/question/1', content_type='application/json', **headers)
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json(), {'message': 'SUCCESS'})
+
+	def test_question_detail_delete_question_does_not_exist(self):
+		headers = {'HTTP_Authorization': self.access_token1}
+		response = client.delete('/question/3', content_type='application/json', **headers)
+		self.assertEqual(response.status_code, 404)
+		self.assertEqual(response.json(), {'message': 'QUESTION_DOES_NOT_EXIST'})
+
+	def test_question_detail_delete_invalid_user(self):
+		headers = {'HTTP_Authorization': self.access_token2}
+		response = client.delete('/question/1', content_type='application/json', **headers)
+		self.assertEqual(response.status_code, 401)
+		self.assertEqual(response.json(), {'message': 'INVALID_USER'})
+		
