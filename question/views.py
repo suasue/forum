@@ -1,8 +1,9 @@
 import json
 from datetime import datetime
 
-from django.views import View
-from django.http  import JsonResponse
+from django.views     import View
+from django.http      import JsonResponse
+from django.db.models import Q
 
 from question.models import Comment, Question, QuestionLike
 from user.utils      import login_decorator
@@ -28,7 +29,14 @@ class QuestionView(View):
 		return JsonResponse({'message': 'SUCCESS'}, status=201)
 
 	def get(self, request):
-		questions = Question.objects.all()
+		keyword = request.GET.get('keyword', None)
+
+		questions = Question.objects.prefetch_related('author')
+
+		if keyword:
+			questions = questions.filter(
+				Q(title__icontains=keyword) | Q(content__icontains=keyword)
+			)
 
 		question_list = [{
 			'id'        : question.id,

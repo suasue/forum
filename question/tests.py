@@ -91,6 +91,21 @@ class QuestionTest(TestCase):
 		})
 		self.assertEqual(response.status_code, 200)
 
+	def test_question_get_search_success(self):
+		response = client.get('/question?keyword=02', content_type='application/json')
+		self.assertEqual(response.json(), {
+			'questions': [
+				{
+					'id'        : 2,
+					'title'     : 'test_title02',
+					'content'   : 'test_content02',
+					'author'    : 'test_name01',
+					'created_at': self.question2.created_at.strftime('%Y-%m-%d %H:%M:%S')
+				}
+			]
+		})
+		self.assertEqual(response.status_code, 200)
+
 
 class QuestionDetailTest(TestCase):
 	@classmethod
