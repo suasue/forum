@@ -1,5 +1,6 @@
 import json
 import jwt
+from datetime import datetime
 
 from django.test import TestCase, Client
 
@@ -67,15 +68,17 @@ class QuestionDetailTest(TestCase):
 			name     = 'test_name02',
 			password = 'test1234'
 		)
-		Question.objects.create(
-			title   = 'test_title1',
-			content = 'test_content1',
-			author  = user1
+		cls.question = Question.objects.create(
+			title      = 'test_title01',
+			content    = 'test_content01',
+			author     = user1,
+			created_at = '2021-05-16 17:30:00'
 		)
 		Question.objects.create(
-			title   = 'test_title2',
-			content = 'test_content2',
-			author  = user2
+			title      = 'test_title02',
+			content    = 'test_content02',
+			author     = user2,
+			created_at = '2021-05-16 19:00:00'
 		)
 		
 		cls.access_token1 = jwt.encode({'id': user1.id}, SECRET_KEY, algorithm=ALGORITHM)
@@ -150,4 +153,22 @@ class QuestionDetailTest(TestCase):
 		response = client.delete('/question/1', content_type='application/json', **headers)
 		self.assertEqual(response.status_code, 401)
 		self.assertEqual(response.json(), {'message': 'INVALID_USER'})
-		
+	
+	def test_question_detail_get_success(self):
+		response = client.get('/question/1', content_type='application/json')
+		self.assertEqual(response.json(), {'message': 'SUCCESS', 
+			'question': {
+				'id': 1,
+				'title': 'test_title01',
+				'content': 'test_content01',
+				'author': 'test_name01',
+				'created_at': self.question.created_at.strftime('%Y-%m-%d %H:%M:%S')
+			}
+		})
+		self.assertEqual(response.status_code, 200)
+
+	def test_question_detail_get_question_does_not_exist(self):
+		headers = {'HTTP_Authorization': self.access_token1}
+		response = client.get('/question/3', content_type='application/json', **headers)
+		self.assertEqual(response.status_code, 404)
+		self.assertEqual(response.json(), {'message': 'QUESTION_DOES_NOT_EXIST'})

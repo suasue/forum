@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 from django.views import View
 from django.http  import JsonResponse
@@ -67,3 +68,19 @@ class QuestionDetailView(View):
 		question.delete()
 
 		return JsonResponse({'message': 'SUCCESS'}, status=200)
+	
+	def get(self, request, question_id):
+		if not Question.objects.filter(id=question_id).exists():
+			return JsonResponse({'message': 'QUESTION_DOES_NOT_EXIST'}, status=404)
+		
+		question = Question.objects.get(id=question_id)
+
+		question_detail = {
+			'id'        : question.id,
+			'title'     : question.title,
+			'content'   : question.content,
+			'author'    : question.author.name,
+			'created_at': question.created_at.strftime('%Y-%m-%d %H:%M:%S')
+		}
+
+		return JsonResponse({'message': 'SUCCESS', 'question': question_detail}, status=200)
