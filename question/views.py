@@ -4,7 +4,7 @@ from datetime import datetime
 from django.views import View
 from django.http  import JsonResponse
 
-from question.models import Comment, Question
+from question.models import Comment, Question, QuestionLike
 from user.utils      import login_decorator
 
 
@@ -69,7 +69,7 @@ class QuestionDetailView(View):
 
 	@login_decorator
 	def delete(self, request, question_id):
-		user    = request.user
+		user = request.user
 
 		if not Question.objects.filter(id=question_id).exists():
 			return JsonResponse({'message': 'QUESTION_DOES_NOT_EXIST'}, status=404)
@@ -134,5 +134,22 @@ class CommentView(View):
 			'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M:%S')
 			} for comment in comments 
 		]
-		
+
 		return JsonResponse({'comments': comment_list}, status=200)
+
+
+class QuestionLikeView(View):
+	@login_decorator
+	def post(self, request, question_id):
+		user = request.user
+		
+		if QuestionLike.objects.filter(user=user, question_id=question_id).exists():
+			QuestionLike.objects.filter(user=user, question_id=question_id).delete()
+			like_count = QuestionLike.objects.filter(question_id=question_id).count()
+
+			return JsonResponse({'message': 'SUCCESS', 'like_count': like_count}, status=200)
+			
+		QuestionLike.objects.create(user=user, question_id=question_id)
+		like_count = QuestionLike.objects.filter(question_id=question_id).count()
+
+		return JsonResponse({'message': 'SUCCESS', 'like_count': like_count}, status=201)

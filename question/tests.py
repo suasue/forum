@@ -4,7 +4,7 @@ from datetime import datetime
 
 from django.test import TestCase, Client
 
-from question.models import Question, Comment
+from question.models import Question, Comment, QuestionLike
 from user.models     import User
 from forum.settings  import SECRET_KEY, ALGORITHM
 
@@ -305,3 +305,49 @@ class CommentTest(TestCase):
 		response = client.post('/question/3/comment', json.dumps(data), content_type='application/json', **headers)
 		self.assertEqual(response.status_code, 404)
 		self.assertEqual(response.json(), {'message': 'QUESTION_DOES_NOT_EXIST'})
+
+
+class CommentLikeTest(TestCase):
+	@classmethod
+	def setUpTestData(cls):
+		user1 = User.objects.create_user(
+			email    = 'test01@example.com',
+			name     = 'test_name01',
+			password = 'test1234'
+		)
+		user2 = User.objects.create_user(
+			email    = 'test02@example.com',
+			name     = 'test_name02',
+			password = 'test1234'
+		)
+		question = Question.objects.create(
+			id         = 1,
+			title      = 'test_title01',
+			content    = 'test_content01',
+			author     = user1,
+			created_at = '2021-05-16 17:30:00'
+		)
+		QuestionLike.objects.create(
+			user     = user1,
+			question = question
+		)
+		
+		cls.access_token1 = jwt.encode({'id': user1.id}, SECRET_KEY, algorithm=ALGORITHM)
+		cls.access_token2 = jwt.encode({'id': user2.id}, SECRET_KEY, algorithm=ALGORITHM)
+	
+	def tearDown(self):
+		User.objects.all().delete()
+		Question.objects.all().delete()
+		QuestionLike.objects.all().delete()
+
+	def test_question_like_post_delete_success(self):
+		headers = {'HTTP_Authorization': self.access_token1}
+		response = client.post('/question/1/like', content_type='application/json', **headers)
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json(), {'message': 'SUCCESS', 'like_count': 0})
+
+	def test_question_like_post_create_success(self):
+		headers = {'HTTP_Authorization': self.access_token2}
+		response = client.post('/question/1/like', content_type='application/json', **headers)
+		self.assertEqual(response.status_code, 201)
+		self.assertEqual(response.json(), {'message': 'SUCCESS', 'like_count': 2})
