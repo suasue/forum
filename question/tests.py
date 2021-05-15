@@ -19,6 +19,20 @@ class QuestionTest(TestCase):
 			name     = 'test_name01',
 			password = 'test1234'
 		)
+		cls.question1 = Question.objects.create(
+			id         = 1,
+			title      = 'test_title01',
+			content    = 'test_content01',
+			author     = user,
+			created_at = '2021-05-16 17:30:00'
+		)
+		cls.question2 = Question.objects.create(
+			id         = 2,
+			title      = 'test_title02',
+			content    = 'test_content02',
+			author     = user,
+			created_at = '2021-05-16 19:00:00'
+		)
 		
 		cls.access_token = jwt.encode({'id': user.id}, SECRET_KEY, algorithm=ALGORITHM)
 	
@@ -54,6 +68,28 @@ class QuestionTest(TestCase):
 		self.assertEqual(response.status_code, 400)
 		self.assertEqual(response.json(), {'message': 'KEY_ERROR'})
 
+	def test_question_get_success(self):
+		response = client.get('/question', content_type='application/json')
+		self.assertEqual(response.json(), {
+			'questions': [
+				{
+					'id'        : 1,
+					'title'     : 'test_title01',
+					'content'   : 'test_content01',
+					'author'    : 'test_name01',
+					'created_at': self.question1.created_at.strftime('%Y-%m-%d %H:%M:%S')
+				},
+				{
+					'id'        : 2,
+					'title'     : 'test_title02',
+					'content'   : 'test_content02',
+					'author'    : 'test_name01',
+					'created_at': self.question2.created_at.strftime('%Y-%m-%d %H:%M:%S')
+				}
+			]
+		})
+		self.assertEqual(response.status_code, 200)
+
 
 class QuestionDetailTest(TestCase):
 	@classmethod
@@ -69,12 +105,14 @@ class QuestionDetailTest(TestCase):
 			password = 'test1234'
 		)
 		cls.question = Question.objects.create(
+			id         = 1,
 			title      = 'test_title01',
 			content    = 'test_content01',
 			author     = user1,
 			created_at = '2021-05-16 17:30:00'
 		)
 		Question.objects.create(
+			id         = 2,
 			title      = 'test_title02',
 			content    = 'test_content02',
 			author     = user2,
@@ -156,12 +194,12 @@ class QuestionDetailTest(TestCase):
 	
 	def test_question_detail_get_success(self):
 		response = client.get('/question/1', content_type='application/json')
-		self.assertEqual(response.json(), {'message': 'SUCCESS', 
+		self.assertEqual(response.json(), {
 			'question': {
-				'id': 1,
-				'title': 'test_title01',
-				'content': 'test_content01',
-				'author': 'test_name01',
+				'id'        : 1,
+				'title'     : 'test_title01',
+				'content'   : 'test_content01',
+				'author'    : 'test_name01',
 				'created_at': self.question.created_at.strftime('%Y-%m-%d %H:%M:%S')
 			}
 		})

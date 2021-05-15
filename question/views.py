@@ -27,6 +27,19 @@ class QuestionView(View):
 
 		return JsonResponse({'message': 'SUCCESS'}, status=201)
 
+	def get(self, request):
+		questions = Question.objects.all()
+
+		question_list = [{
+			'id'        : question.id,
+			'title'     : question.title,
+			'content'   : question.content,
+			'author'    : question.author.name,
+			'created_at': question.created_at.strftime('%Y-%m-%d %H:%M:%S')
+			} for question in questions
+		]
+
+		return JsonResponse({'questions': question_list}, status=200)
 
 class QuestionDetailView(View):
 	@login_decorator
@@ -83,4 +96,4 @@ class QuestionDetailView(View):
 			'created_at': question.created_at.strftime('%Y-%m-%d %H:%M:%S')
 		}
 
-		return JsonResponse({'message': 'SUCCESS', 'question': question_detail}, status=200)
+		return JsonResponse({'question': question_detail}, status=200)
