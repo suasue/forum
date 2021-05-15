@@ -4,7 +4,8 @@ from question.views import (
 	QuestionView, 
 	QuestionDetailView, 
 	CommentView,
-	QuestionLikeView
+	QuestionLikeView,
+	BestQuestionView
 )
 
 
@@ -13,4 +14,5 @@ urlpatterns = [
     path('/<int:question_id>', QuestionDetailView.as_view()),
     path('/<int:question_id>/comment', CommentView.as_view()),
     path('/<int:question_id>/like', QuestionLikeView.as_view()),
+    path('/<int:question_id>/best', BestQuestionView.as_view()),
 ]

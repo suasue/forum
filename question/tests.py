@@ -223,8 +223,7 @@ class QuestionDetailTest(TestCase):
 		self.assertEqual(response.status_code, 200)
 
 	def test_question_detail_get_question_does_not_exist(self):
-		headers = {'HTTP_Authorization': self.access_token1}
-		response = client.get('/question/3', content_type='application/json', **headers)
+		response = client.get('/question/3', content_type='application/json')
 		self.assertEqual(response.status_code, 404)
 		self.assertEqual(response.json(), {'message': 'QUESTION_DOES_NOT_EXIST'})
 
@@ -315,14 +314,12 @@ class CommentTest(TestCase):
 		self.assertEqual(response.status_code, 200)
 
 	def test_comment_get_question_does_not_exist(self):
-		headers = {'HTTP_Authorization': self.access_token}
-		data = {'content': 'test_comment'}
-		response = client.post('/question/3/comment', json.dumps(data), content_type='application/json', **headers)
+		response = client.get('/question/3/comment', content_type='application/json')
 		self.assertEqual(response.status_code, 404)
 		self.assertEqual(response.json(), {'message': 'QUESTION_DOES_NOT_EXIST'})
 
 
-class CommentLikeTest(TestCase):
+class QuestionLikeTest(TestCase):
 	@classmethod
 	def setUpTestData(cls):
 		user1 = User.objects.create_user(
@@ -366,3 +363,86 @@ class CommentLikeTest(TestCase):
 		response = client.post('/question/1/like', content_type='application/json', **headers)
 		self.assertEqual(response.status_code, 201)
 		self.assertEqual(response.json(), {'message': 'SUCCESS', 'like_count': 2})
+
+	def test_question_like_post_question_does_not_exist(self):
+		headers = {'HTTP_Authorization': self.access_token1}
+		response = client.post('/question/3/like', content_type='application/json', **headers)
+		self.assertEqual(response.status_code, 404)
+		self.assertEqual(response.json(), {'message': 'QUESTION_DOES_NOT_EXIST'})
+
+
+class BestQuestionTest(TestCase):
+	@classmethod
+	def setUpTestData(cls):
+		user1 = User.objects.create_user(
+			email    = 'test01@example.com',
+			name     = 'test_name01',
+			password = 'test1234'
+		)
+		user2 = User.objects.create_user(
+			email    = 'test02@example.com',
+			name     = 'test_name02',
+			password = 'test1234'
+		)
+		user3 = User.objects.create_user(
+			email    = 'test03@example.com',
+			name     = 'test_name03',
+			password = 'test1234'
+		)
+		question1 = Question.objects.create(
+			id         = 1,
+			title      = 'test_title01',
+			content    = 'test_content01',
+			author     = user1,
+			created_at = '2021-05-16 17:30:00'
+		)
+		cls.question2 = Question.objects.create(
+			id         = 2,
+			title      = 'test_title02',
+			content    = 'test_content02',
+			author     = user2,
+			created_at = '2021-05-17 11:00:00'
+		)		
+		QuestionLike.objects.create(
+			user     = user1,
+			question = question1
+		)
+		QuestionLike.objects.create(
+			user     = user1,
+			question = cls.question2
+		)
+		QuestionLike.objects.create(
+			user     = user2,
+			question = cls.question2
+		)
+		QuestionLike.objects.create(
+			user     = user3,
+			question = cls.question2
+		)
+
+		cls.access_token1 = jwt.encode({'id': user1.id}, SECRET_KEY, algorithm=ALGORITHM)
+		cls.access_token2 = jwt.encode({'id': user2.id}, SECRET_KEY, algorithm=ALGORITHM)
+	
+	def tearDown(self):
+		User.objects.all().delete()
+		Question.objects.all().delete()
+		QuestionLike.objects.all().delete()
+
+	def test_best_question_get_success(self):
+		response = client.get('/question/1/best', content_type='application/json')
+		self.assertEqual(response.json(), {
+			'best_question': {
+				'id'        : 2,
+				'title'     : 'test_title02',
+				'content'   : 'test_content02',
+				'author'    : 'test_name02',
+				'created_at': self.question2.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+				'like_count': 3
+			}
+		})
+		self.assertEqual(response.status_code, 200)
+
+	def test_best_question_get_question_does_not_exist(self):
+		response = client.get('/question/3/best', content_type='application/json')
+		self.assertEqual(response.status_code, 404)
+		self.assertEqual(response.json(), {'message': 'QUESTION_DOES_NOT_EXIST'})

@@ -1,9 +1,9 @@
 import json
 from datetime import datetime
 
-from django.views     import View
-from django.http      import JsonResponse
-from django.db.models import Q
+from django.views               import View
+from django.http                import JsonResponse
+from django.db.models           import Q, Count
 
 from question.models import Comment, Question, QuestionLike
 from user.utils      import login_decorator
@@ -150,7 +150,9 @@ class QuestionLikeView(View):
 	@login_decorator
 	def post(self, request, question_id):
 		user = request.user
-		
+		if not Question.objects.filter(id=question_id).exists():
+			return JsonResponse({'message': 'QUESTION_DOES_NOT_EXIST'}, status=404)
+
 		if QuestionLike.objects.filter(user=user, question_id=question_id).exists():
 			QuestionLike.objects.filter(user=user, question_id=question_id).delete()
 			like_count = QuestionLike.objects.filter(question_id=question_id).count()
@@ -161,3 +163,24 @@ class QuestionLikeView(View):
 		like_count = QuestionLike.objects.filter(question_id=question_id).count()
 
 		return JsonResponse({'message': 'SUCCESS', 'like_count': like_count}, status=201)
+
+
+class BestQuestionView(View):
+	def get(self, request, question_id):
+		if not Question.objects.filter(id=question_id).exists():
+			return JsonResponse({'message': 'QUESTION_DOES_NOT_EXIST'}, status=404)
+
+		question      = Question.objects.get(id=question_id)
+		questions     = Question.objects.filter(created_at__month=question.created_at.month)
+		best_question = questions.annotate(like_count=Count('questionlike')).order_by('-like_count')[0]
+		
+		best_question_detail = {
+			'id'        : best_question.id,
+			'title'     : best_question.title,
+			'content'   : best_question.content,
+			'author'    : best_question.author.name,
+			'created_at': best_question.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+			'like_count': best_question.like_count
+		}
+
+		return JsonResponse({'best_question': best_question_detail}, status=200)
