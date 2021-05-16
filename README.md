@@ -53,7 +53,7 @@ access_token : eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MX0.IBOJR9PIpMToOWcF
     $ http GET localhost:8000/question
     ```
     ```bash
-    $ http GET localhost:8000/question keyword=="01"
+    $ http GET localhost:8000/question keyword=="django"
     ```
 
 - **Success Response:**
@@ -149,7 +149,7 @@ access_token : eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MX0.IBOJR9PIpMToOWcF
 - **Sample Call:**
 
     ```bash
-    $ http PUT localhost:8000/question/1 "Authorization":eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MX0.IBOJR9PIpMToOWcFjK7XK5zEGrgCMQYG-D8Kcwa9VKY title="modified_title" content="modified_content"
+    $ http PUT localhost:8000/question/4 "Authorization":eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MX0.IBOJR9PIpMToOWcFjK7XK5zEGrgCMQYG-D8Kcwa9VKY title="modified_title" content="modified_content"
     ```
 
 - **Success Response:**
@@ -187,7 +187,7 @@ access_token : eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MX0.IBOJR9PIpMToOWcF
 - **Sample Call:**
 
     ```bash
-    $ http DELETE localhost:8000/question/1 "Authorization":eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MX0.IBOJR9PIpMToOWcFjK7XK5zEGrgCMQYG-D8Kcwa9VKY
+    $ http DELETE localhost:8000/question/4 "Authorization":eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MX0.IBOJR9PIpMToOWcFjK7XK5zEGrgCMQYG-D8Kcwa9VKY
     ```
 
 - **Success Response:**
@@ -438,7 +438,7 @@ access_token : eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MX0.IBOJR9PIpMToOWcF
 - **Sample Call:**
 
     ```bash
-    $ http POST localhost:8000/user/signup email="user1@example.com" name="user1" password="12341234"
+    $ http POST localhost:8000/user/signup email="user4@example.com" name="user4" password="12341234"
     ```
 
 - **Success Response:**
@@ -474,13 +474,13 @@ access_token : eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MX0.IBOJR9PIpMToOWcF
 - **Sample Call:**
 
     ```bash
-    $ http POST localhost:8000/user/signin email="user1@example.com" password="12341234"
+    $ http POST localhost:8000/user/signin email="user4@example.com" password="12341234"
     ```
 
 - **Success Response:**
     - **Code:** 200 OK
     - **Content:**`{
-    "Authorization": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MX0.IBOJR9PIpMToOWcFjK7XK5zEGrgCMQYG-D8Kcwa9VKY",
+    "Authorization": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6NH0.4T3kI8SBFGlzhAXiPzNHX7XXPohNxJwOymblTMYzcxI",
     "message": "SUCCESS"
 }
 `
