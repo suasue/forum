@@ -10,6 +10,7 @@ from forum.settings import SECRET_KEY, ALGORITHM
 
 class SingUpView(View):
 	def post(self, request):
+		"""Create a new user"""
 		data     = json.loads(request.body)
 		email    = data.get('email', None)
 		name     = data.get('name', None)
@@ -28,6 +29,7 @@ class SingUpView(View):
 
 class SignInView(View):
 	def post(self, request):
+		"""Signin using email and password"""
 		data     = json.loads(request.body)
 		email    = data.get('email', None)
 		password = data.get('password', None)

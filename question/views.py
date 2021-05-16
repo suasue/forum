@@ -12,6 +12,7 @@ from user.utils      import login_decorator
 class QuestionView(View):
 	@login_decorator
 	def post(self, request):
+		"""Create a new question"""
 		user    = request.user
 		data    = json.loads(request.body)
 		title   = data.get('title', None)
@@ -29,6 +30,7 @@ class QuestionView(View):
 		return JsonResponse({'message': 'SUCCESS'}, status=201)
 
 	def get(self, request):
+		"""Show questions and search by keyword"""
 		keyword = request.GET.get('keyword', None)
 
 		questions = Question.objects.prefetch_related('author')
@@ -53,6 +55,7 @@ class QuestionView(View):
 class QuestionDetailView(View):
 	@login_decorator
 	def put(self, request, question_id):
+		"""Update a question"""
 		user    = request.user
 		data    = json.loads(request.body)
 		title   = data.get('title', None)
@@ -77,6 +80,7 @@ class QuestionDetailView(View):
 
 	@login_decorator
 	def delete(self, request, question_id):
+		"""Delete a question"""
 		user = request.user
 
 		if not Question.objects.filter(id=question_id).exists():
@@ -92,6 +96,7 @@ class QuestionDetailView(View):
 		return JsonResponse({'message': 'SUCCESS'}, status=200)
 	
 	def get(self, request, question_id):
+		"""Show a question"""
 		if not Question.objects.filter(id=question_id).exists():
 			return JsonResponse({'message': 'QUESTION_DOES_NOT_EXIST'}, status=404)
 		
@@ -111,6 +116,7 @@ class QuestionDetailView(View):
 class CommentView(View):
 	@login_decorator
 	def post(self, request, question_id):
+		"""Create a new comment"""
 		user    = request.user
 		data    = json.loads(request.body)
 		content = data.get('content', None)
@@ -130,10 +136,11 @@ class CommentView(View):
 		return JsonResponse({'message': 'SUCCESS'}, status=201)
 
 	def get(self, request, question_id):
+		"""Show all comments to the question"""
 		if not Question.objects.filter(id=question_id).exists():
 			return JsonResponse({'message': 'QUESTION_DOES_NOT_EXIST'}, status=404)
 
-		comments = Comment.objects.filter(question_id=question_id)
+		comments = Comment.objects.filter(question_id=question_id).prefetch_related('author')
 
 		comment_list = [{
 			'id'        : comment.id,
@@ -149,6 +156,7 @@ class CommentView(View):
 class QuestionLikeView(View):
 	@login_decorator
 	def post(self, request, question_id):
+		"""Create a like or delete it if a like already exists"""
 		user = request.user
 		if not Question.objects.filter(id=question_id).exists():
 			return JsonResponse({'message': 'QUESTION_DOES_NOT_EXIST'}, status=404)
@@ -167,6 +175,7 @@ class QuestionLikeView(View):
 
 class BestQuestionView(View):
 	def get(self, request, question_id):
+		"""Show most liked question of the month that the question created in"""
 		if not Question.objects.filter(id=question_id).exists():
 			return JsonResponse({'message': 'QUESTION_DOES_NOT_EXIST'}, status=404)
 
